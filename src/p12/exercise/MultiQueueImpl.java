@@ -35,14 +35,18 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
 
     @Override
     public void enqueue(T elem, Q queue) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'enqueue'");
+        if(!queues.containsKey(queue)) {
+            throw new IllegalArgumentException();
+        }
+        queues.get(queue).add(elem);
     }
 
     @Override
     public T dequeue(Q queue) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'dequeue'");
+        if(!queues.containsKey(queue)) {
+            throw new IllegalArgumentException();
+        }
+        return queues.get(queue).poll();
     }
 
     @Override
