@@ -50,21 +50,33 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     }
 
     @Override
-    public Map<Q, T> dequeueOneFromAllQueues() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'dequeueOneFromAllQueues'");
+    public final Map<Q, T> dequeueOneFromAllQueues() {
+        final Map<Q, T> retMap = new HashMap<>();
+        for(Q queue : queues.keySet()) {
+            retMap.put(queue, queues.get(queue).poll());
+        }
+        return retMap;
     }
 
     @Override
     public Set<T> allEnqueuedElements() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'allEnqueuedElements'");
+        final Set<T> retSet = new HashSet<>();
+        for(Q queue : queues.keySet()) {
+            retSet.addAll(queues.get(queue));
+        }
+        return retSet;
     }
 
     @Override
     public List<T> dequeueAllFromQueue(Q queue) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'dequeueAllFromQueue'");
+        if(!queues.containsKey(queue)) {
+            throw new IllegalArgumentException();
+        }
+        List<T> retList = new LinkedList<>();
+        while(!queues.get(queue).isEmpty()) {
+            retList.add(this.dequeue(queue));
+        }
+        return retList;
     }
 
     @Override
