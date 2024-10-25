@@ -30,7 +30,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
         if(!queues.containsKey(queue)) {
             throw new IllegalArgumentException();
         }
-        return queues.containsKey(queue);
+        return queues.get(queue).isEmpty();
     }
 
     @Override
