@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Iterator;
-import java.util.Collection;
 
 public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
 
@@ -29,7 +28,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     }
 
     @Override
-    public boolean isQueueEmpty(Q queue) {
+    public boolean isQueueEmpty(final Q queue) {
         if(!queues.containsKey(queue)) {
             throw new IllegalArgumentException();
         }
@@ -37,7 +36,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     }
 
     @Override
-    public void enqueue(T elem, Q queue) {
+    public void enqueue(final T elem, final Q queue) {
         if(!queues.containsKey(queue)) {
             throw new IllegalArgumentException();
         }
@@ -45,7 +44,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     }
 
     @Override
-    public T dequeue(Q queue) {
+    public T dequeue(final Q queue) {
         if(!queues.containsKey(queue)) {
             throw new IllegalArgumentException();
         }
@@ -55,7 +54,7 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public final Map<Q, T> dequeueOneFromAllQueues() {
         final Map<Q, T> retMap = new HashMap<>();
-        for(Q queue : queues.keySet()) {
+        for(final Q queue : queues.keySet()) {
             retMap.put(queue, queues.get(queue).poll());
         }
         return retMap;
@@ -64,18 +63,18 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     @Override
     public Set<T> allEnqueuedElements() {
         final Set<T> retSet = new HashSet<>();
-        for(Q queue : queues.keySet()) {
+        for(final Q queue : queues.keySet()) {
             retSet.addAll(queues.get(queue));
         }
         return retSet;
     }
 
     @Override
-    public List<T> dequeueAllFromQueue(Q queue) {
+    public List<T> dequeueAllFromQueue(final Q queue) {
         if(!queues.containsKey(queue)) {
             throw new IllegalArgumentException();
         }
-        List<T> retList = new LinkedList<>();
+        final List<T> retList = new LinkedList<>();
         while(!queues.get(queue).isEmpty()) {
             retList.add(this.dequeue(queue));
         }
@@ -90,19 +89,23 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
         if(queues.size() <= MIN_QUEUES_AVAILABLE_FOR_RELOC) {
             throw new IllegalStateException();
         }
-        List<T> tmpQueue = this.dequeueAllFromQueue(queue);
+        final List<T> elemsToSpread = this.dequeueAllFromQueue(queue);
+        queues.remove(queue);
+        spreadElemsToAvaibleQueues(queue, elemsToSpread); 
+    }
+
+    private void spreadElemsToAvaibleQueues(final Q queueToSpread, final List<T> elemsToSpread) {
         Iterator<Q> keySetIterator = null;
-        while(!tmpQueue.isEmpty()) {
+        while(!elemsToSpread.isEmpty()) {
             if(keySetIterator == null || !keySetIterator.hasNext()) {
                 keySetIterator = queues.keySet().iterator();
             } else {
-                Q qToInsertName = keySetIterator.next();
-                if(qToInsertName != queue) {
-                    this.enqueue(tmpQueue.removeFirst() , qToInsertName);
+                Q queueToInsert = keySetIterator.next();
+                if(queueToInsert != queueToSpread) {
+                    this.enqueue(elemsToSpread.removeFirst() , queueToInsert);
                 }
             }
-        } 
-        queues.remove(queue);
+        }
     }
 
 }
