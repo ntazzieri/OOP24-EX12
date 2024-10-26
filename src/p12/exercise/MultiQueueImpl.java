@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Iterator;
+import java.util.Collection;
 
 public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
 
+    private static final int MIN_QUEUES_AVAILABLE_FOR_RELOC = 1;
     private final Map<Q, Queue<T>> queues = new HashMap<>();
 
     @Override
@@ -80,9 +83,26 @@ public class MultiQueueImpl<T, Q> implements MultiQueue<T, Q>{
     }
 
     @Override
-    public void closeQueueAndReallocate(Q queue) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'closeQueueAndReallocate'");
+    public void closeQueueAndReallocate(final Q queue) {
+        if(!queues.containsKey(queue)) {
+            throw new IllegalArgumentException();
+        }
+        if(queues.size() <= MIN_QUEUES_AVAILABLE_FOR_RELOC) {
+            throw new IllegalStateException();
+        }
+        List<T> tmpQueue = this.dequeueAllFromQueue(queue);
+        Iterator<Q> keySetIterator = null;
+        while(!tmpQueue.isEmpty()) {
+            if(keySetIterator == null || !keySetIterator.hasNext()) {
+                keySetIterator = queues.keySet().iterator();
+            } else {
+                Q qToInsertName = keySetIterator.next();
+                if(qToInsertName != queue) {
+                    this.enqueue(tmpQueue.removeFirst() , qToInsertName);
+                }
+            }
+        } 
+        queues.remove(queue);
     }
 
 }
